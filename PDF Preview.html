@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>URL Reformatter</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>URL Reformatter</h1>
+  <label for="url-input">URLs:</label>
+  <textarea id="url-input" rows="4" cols="50"></textarea>
+  <br>
+  <label for="name-input">Names:</label>
+  <textarea id="name-input" rows="4" cols="50"></textarea>
+  <br>
+  <button onclick="generateLinks()">Generate</button>
+  <button onclick="startViewing()">Start Viewing</button>
+  <br><br>
+  <table id="link-table">
+    <tr>
+      <th>Name</th>
+      <th>Link</th>
+    </tr>
+  </table>
+  <div id="popup" class="popup">
+    <h2 id="popup-title"></h2>
+    <iframe id="pdf-iframe" src="" width="100%" height="500"></iframe>
+    <p>
+      <button onclick="setLinkStatus(true)">Yes</button>
+      <button onclick="setLinkStatus(false)">No</button>
+      <button onclick="resetLinkStatus()">Reset</button>
+    </p>
+  </div>
+
+  <script>
+    var urls = [];
+    var names = [];
+    var currentIndex = 0;
+
+    function generateLinks() {
+      var urlInput = document.getElementById('url-input').value;
+      var nameInput = document.getElementById('name-input').value;
+
+      urls = urlInput.trim().split('\n');
+      names = nameInput.trim().split('\n');
+
+      var linkTable = document.getElementById('link-table');
+      linkTable.innerHTML = '<tr><th>Name</th><th>Link</th></tr>';
+
+      for (var i = 0; i < urls.length; i++) {
+        var url = urls[i];
+        var number = extractNumber(url);
+        var newNumber = parseInt(number) + 999;
+        var newUrl = url.replace(number, newNumber);
+        var name = names[i];
+
+        var row = linkTable.insertRow();
+        var nameCell = row.insertCell(0);
+        var linkCell = row.insertCell(1);
+
+        nameCell.innerHTML = name;
+        linkCell.innerHTML = '<a href="' + newUrl + '" onclick="openPopup(this); return false;">Open</a>';
+      }
+    }
+
+    function extractNumber(url) {
+      var numberRegex = /\d+$/;
+      var matches = url.match(numberRegex);
+      if (matches && matches.length > 0) {
+        return matches[0];
+      }
+      return '';
+    }
+
+    function openPopup(link) {
+      var popup = document.getElementById('popup');
+      var popupTitle = document.getElementById('popup-title');
+      var pdfIframe = document.getElementById('pdf-iframe');
+
+      popupTitle.innerText = link.innerText;
+      pdfIframe.src = link.href;
+      popup.style.display = 'block';
+    }
+
+    function setLinkStatus(status) {
+      var linkTable = document.getElementById('link-table');
+      var linkRow = linkTable.rows[currentIndex + 1];
+      var linkCell = linkRow.cells[1];
+      linkCell.style.backgroundColor = status ? 'green' : 'red';
+
+      closePopup();
+      currentIndex++;
+      openNextPopup();
+    }
+
+    function resetLinkStatus() {
+      var linkTable = document.getElementById('link-table');
+      var linkRow = linkTable.rows[currentIndex + 1];
+      var linkCell = linkRow.cells[1];
+      linkCell.style.backgroundColor = 'white';
+
+      closePopup();
+      currentIndex++;
+      openNextPopup();
+    }
+
+    function closePopup() {
+      var popup = document.getElementById('popup');
+      popup.style.display = 'none';
+    }
+
+    function openNextPopup() {
+      var linkTable = document.getElementById('link-table');
+      if (currentIndex >= linkTable.rows.length - 1) {
+        alert('No more links to open.');
+        return;
+      }
+
+      var linkRow = linkTable.rows[currentIndex + 1];
+      var linkCell = linkRow.cells[1];
+      var link = linkCell.firstChild;
+      openPopup(link);
+    }
+
+    function startViewing() {
+      currentIndex = 0;
+      openNextPopup();
+    }
+  </script>
+</body>
+</html>
