@@ -6,148 +6,127 @@
     table {
       border-collapse: collapse;
     }
+    table, th, td {
+      border: 1px solid black;
+    }
     th, td {
       padding: 8px;
-      border: 1px solid #ddd;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: lightgray;
     }
-    .popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #fff;
-      padding: 20px;
-      width: 400px;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    a {
+      text-decoration: none;
+    }
+    .green {
+      background-color: green;
+    }
+    .red {
+      background-color: red;
     }
   </style>
-</head>
-<body>
-  <h1>URL Reformatter</h1>
-  <label for="url-input">URLs:</label>
-  <textarea id="url-input" rows="4" cols="50"></textarea>
-  <br>
-  <label for="name-input">Names:</label>
-  <textarea id="name-input" rows="4" cols="50"></textarea>
-  <br>
-  <button onclick="generateLinks()">Generate</button>
-  <button onclick="startViewing()">Start Viewing</button>
-  <br><br>
-  <table id="link-table">
-    <tr>
-      <th>Name</th>
-      <th>Link</th>
-    </tr>
-  </table>
-  <div id="popup" class="popup">
-    <h2 id="popup-title"></h2>
-    <iframe id="pdf-iframe" src="" width="100%" height="500"></iframe>
-    <p>
-      <button onclick="setLinkStatus(true)">Yes</button>
-      <button onclick="setLinkStatus(false)">No</button>
-      <button onclick="resetLinkStatus()">Reset</button>
-    </p>
-  </div>
-
   <script>
     var urls = [];
     var names = [];
     var currentIndex = 0;
 
-    function generateLinks() {
-      var urlInput = document.getElementById('url-input').value;
-      var nameInput = document.getElementById('name-input').value;
+    function generateURLs() {
+      var urlInput = document.getElementById("urlInput").value;
+      var nameInput = document.getElementById("nameInput").value;
 
-      urls = urlInput.trim().split('\n');
-      names = nameInput.trim().split('\n');
+      // Reformat URL
+      var url = urlInput.trim();
+      var number = parseInt(url.substring(url.lastIndexOf("/") + 1));
+      var newNumber = number + 999;
+      var newURL = url.replace(number, newNumber);
 
-      var linkTable = document.getElementById('link-table');
-      linkTable.innerHTML = '<tr><th>Name</th><th>Link</th></tr>';
+      // Store URL and name
+      urls.push(newURL);
+      names.push(nameInput);
+
+      // Clear input fields
+      document.getElementById("urlInput").value = "";
+      document.getElementById("nameInput").value = "";
+
+      // Display table
+      displayTable();
+    }
+
+    function displayTable() {
+      var table = document.getElementById("urlTable");
+      table.innerHTML = "";
+
+      var headerRow = table.insertRow();
+      var nameHeader = headerRow.insertCell();
+      nameHeader.innerHTML = "Name";
+      var urlHeader = headerRow.insertCell();
+      urlHeader.innerHTML = "URL";
 
       for (var i = 0; i < urls.length; i++) {
-        var url = urls[i];
-        var number = extractNumber(url);
-        var newNumber = parseInt(number) + 999;
-        var newUrl = url.replace(number, newNumber);
-        var name = names[i];
+        var row = table.insertRow();
 
-        var row = linkTable.insertRow();
-        var nameCell = row.insertCell(0);
-        var linkCell = row.insertCell(1);
+        var nameCell = row.insertCell();
+        nameCell.innerHTML = names[i];
 
-        nameCell.innerHTML = name;
-        linkCell.innerHTML = '<a href="' + newUrl + '" onclick="openPopup(this); return false;">Open</a>';
+        var urlCell = row.insertCell();
+        var link = document.createElement("a");
+        link.href = urls[i];
+        link.target = "_blank";
+        link.innerHTML = urls[i];
+        urlCell.appendChild(link);
       }
-    }
-
-    function extractNumber(url) {
-      var numberRegex = /\d+$/;
-      var matches = url.match(numberRegex);
-      if (matches && matches.length > 0) {
-        return matches[0];
-      }
-      return '';
-    }
-
-    function openPopup(link) {
-      var popup = document.getElementById('popup');
-      var popupTitle = document.getElementById('popup-title');
-      var pdfIframe = document.getElementById('pdf-iframe');
-
-      popupTitle.innerText = link.innerText;
-      pdfIframe.src = link.href;
-      popup.style.display = 'block';
-    }
-
-    function setLinkStatus(status) {
-      var linkTable = document.getElementById('link-table');
-      var linkRow = linkTable.rows[currentIndex + 1];
-      var linkCell = linkRow.cells[1];
-      linkCell.style.backgroundColor = status ? 'green' : 'red';
-
-      closePopup();
-      currentIndex++;
-      openNextPopup();
-    }
-
-    function resetLinkStatus() {
-      var linkTable = document.getElementById('link-table');
-      var linkRow = linkTable.rows[currentIndex + 1];
-      var linkCell = linkRow.cells[1];
-      linkCell.style.backgroundColor = 'white';
-
-      closePopup();
-      currentIndex++;
-      openNextPopup();
-    }
-
-    function closePopup() {
-      var popup = document.getElementById('popup');
-      popup.style.display = 'none';
     }
 
     function openNextPopup() {
-      var linkTable = document.getElementById('link-table');
-      if (currentIndex >= linkTable.rows.length - 1) {
-        alert('No more links to open.');
-        return;
-      }
+      if (currentIndex < urls.length) {
+        var url = urls[currentIndex];
+        var name = names[currentIndex];
+        currentIndex++;
 
-      var linkRow = linkTable.rows[currentIndex + 1];
-      var linkCell = linkRow.cells[1];
-      var link = linkCell.firstChild;
-      openPopup(link);
+        var popup = window.open(url, name, "height=600,width=800");
+        popup.onload = function() {
+          popup.scroll(0, 200); // Scroll to the second page (adjust the value as needed)
+        };
+
+        var promptContainer = document.getElementById("promptContainer");
+        promptContainer.style.display = "block";
+        document.getElementById("promptTitle").innerHTML = name;
+      }
     }
 
-    function startViewing() {
-      currentIndex = 0;
+    function closePopup(button) {
+      var promptContainer = document.getElementById("promptContainer");
+      promptContainer.style.display = "none";
+
+      var link = document.getElementById("urlTable").rows[currentIndex].cells[1].getElementsByTagName("a")[0];
+      if (button === "yes") {
+        link.className = "green";
+      } else if (button === "no") {
+        link.className = "red";
+      } else {
+        link.className = "";
+      }
+
       openNextPopup();
     }
   </script>
+</head>
+<body>
+  <h1>URL Reformatter</h1>
+  <label for="urlInput">URL:</label>
+  <input type="text" id="urlInput"><br>
+  <label for="nameInput">Name:</label>
+  <input type="text" id="nameInput"><br>
+  <button onclick="generateURLs()">Generate</button>
+  <button onclick="openNextPopup()">Start Viewing</button>
+
+  <table id="urlTable"></table>
+
+  <div id="promptContainer" style="display: none;">
+    <h2 id="promptTitle"></h2>
+    <button onclick="closePopup('yes')">Yes</button>
+    <button onclick="closePopup('no')">No</button>
+    <button onclick="closePopup('reset')">Reset</button>
+  </div>
 </body>
 </html>
