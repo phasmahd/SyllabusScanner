@@ -1,132 +1,246 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>URL Reformatter</title>
-  <style>
-    table {
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid black;
-    }
-    th, td {
-      padding: 8px;
-    }
-    th {
-      background-color: lightgray;
-    }
-    a {
-      text-decoration: none;
-    }
-    .green {
-      background-color: green;
-    }
-    .red {
-      background-color: red;
-    }
-  </style>
-  <script>
-    var urls = [];
-    var names = [];
-    var currentIndex = 0;
-
-    function generateURLs() {
-      var urlInput = document.getElementById("urlInput").value;
-      var nameInput = document.getElementById("nameInput").value;
-
-      // Reformat URL
-      var url = urlInput.trim();
-      var number = parseInt(url.substring(url.lastIndexOf("/") + 1));
-      var newNumber = number + 999;
-      var newURL = url.replace(number, newNumber);
-
-      // Store URL and name
-      urls.push(newURL);
-      names.push(nameInput);
-
-      // Clear input fields
-      document.getElementById("urlInput").value = "";
-      document.getElementById("nameInput").value = "";
-
-      // Display table
-      displayTable();
-    }
-
-    function displayTable() {
-      var table = document.getElementById("urlTable");
-      table.innerHTML = "";
-
-      var headerRow = table.insertRow();
-      var nameHeader = headerRow.insertCell();
-      nameHeader.innerHTML = "Name";
-      var urlHeader = headerRow.insertCell();
-      urlHeader.innerHTML = "URL";
-
-      for (var i = 0; i < urls.length; i++) {
-        var row = table.insertRow();
-
-        var nameCell = row.insertCell();
-        nameCell.innerHTML = names[i];
-
-        var urlCell = row.insertCell();
-        var link = document.createElement("a");
-        link.href = urls[i];
-        link.target = "_blank";
-        link.innerHTML = urls[i];
-        urlCell.appendChild(link);
-      }
-    }
-
-    function openNextPopup() {
-      if (currentIndex < urls.length) {
-        var url = urls[currentIndex];
-        var name = names[currentIndex];
-        currentIndex++;
-
-        var popup = window.open(url, name, "height=600,width=800");
-        popup.onload = function() {
-          popup.scroll(0, 200); // Scroll to the second page (adjust the value as needed)
-        };
-
-        var promptContainer = document.getElementById("promptContainer");
-        promptContainer.style.display = "block";
-        document.getElementById("promptTitle").innerHTML = name;
-      }
-    }
-
-    function closePopup(button) {
-      var promptContainer = document.getElementById("promptContainer");
-      promptContainer.style.display = "none";
-
-      var link = document.getElementById("urlTable").rows[currentIndex].cells[1].getElementsByTagName("a")[0];
-      if (button === "yes") {
-        link.className = "green";
-      } else if (button === "no") {
-        link.className = "red";
-      } else {
-        link.className = "";
-      }
-
-      openNextPopup();
-    }
-  </script>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            background-color: #333333;
+            color: white;
+        }
+        
+        #header {
+            text-align: center;
+            padding: 20px;
+            background-color: #444444;
+        }
+        
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: auto;
+            border-radius: 10px;
+            background-color: #555555;
+            padding: 20px;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .input-container textarea {
+            height: 200px;
+            width: 100%;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: #777777;
+            color: white;
+        }
+        
+        .input-container button {
+            margin-top: 10px;
+            font-size: 20px;
+            font-family: Helvetica, Arial, sans-serif;
+            border-radius: 5px;
+            background-color: #888888;
+            color: white;
+        }
+        
+        #contentContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        #urlList,
+        #controlPanel {
+            width: 50%;
+            height: 50vh;
+            overflow: auto;
+            border: 1px solid black;
+            margin-top: 20px;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: #666666;
+            box-sizing: border-box;
+        }
+        
+        #urlList {
+            background-color: #777777;
+        }
+        
+        #controlPanel {
+            background-color: #888888;
+        }
+        
+        #controlPanel button {
+            height: 120px;
+            width: 100%;
+            font-size: 36px;
+            border-radius: 5px;
+            color: white;
+            margin-top: 10px;
+        }
+        
+        #controlPanel button.yes {
+            background-color: green;
+        }
+        
+        #controlPanel button.no {
+            background-color: red;
+        }
+        
+        #controlPanel button.reset {
+            width: 100%;
+            height: 60px;
+            font-size: 24px;
+            margin-top: 20px;
+            color: black;
+            background-color: #cccccc;
+        }
+        
+        #controlPanel button.export {
+            width: 100%;
+            height: 60px;
+            font-size: 24px;
+            margin-top: 20px;
+            background-color: #555555;
+        }
+        
+        table {
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #777777;
+        }
+        
+        a {
+            color: white;
+        }
+    </style>
 </head>
 <body>
-  <h1>URL Reformatter</h1>
-  <label for="urlInput">URL:</label>
-  <input type="text" id="urlInput"><br>
-  <label for="nameInput">Name:</label>
-  <input type="text" id="nameInput"><br>
-  <button onclick="generateURLs()">Generate</button>
-  <button onclick="openNextPopup()">Start Viewing</button>
+    <div id="header">
+        <h2>Syllabus Scanner</h2>
+    </div>
+    <div id="contentContainer">
+        <div class="input-container">
+            <label for="urls">URLs:</label>
+            <textarea id="urls" placeholder="Enter URLs"></textarea>
+            <label for="names">Names:</label>
+            <textarea id="names" placeholder="Enter names"></textarea>
+            <button onclick="generateURLs()">Generate</button>
+        </div>
+        <div id="urlList">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Yes/No</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        <div id="controlPanel">
+            <h1 id="openedURLName"></h1>
+            <button class="yes" onclick="closePopup('yes')">&#x2713;</button>
+            <button class="no" onclick="closePopup('no')">&#x2717;</button>
+            <button class="reset" onclick="reset()">Reset</button>
+            <button class="export" onclick="exportToCSV()">Export</button>
+        </div>
+    </div>
+    <script>
+        let urls = [];
+        let names = [];
+        let responses = [];
+        let currentPopup;
+        let currentIndex = -1;
 
-  <table id="urlTable"></table>
+        function generateURLs() {
+            urls = document.getElementById('urls').value.split("\n");
+            names = document.getElementById('names').value.split("\n");
+            responses = new Array(urls.length).fill('');
 
-  <div id="promptContainer" style="display: none;">
-    <h2 id="promptTitle"></h2>
-    <button onclick="closePopup('yes')">Yes</button>
-    <button onclick="closePopup('no')">No</button>
-    <button onclick="closePopup('reset')">Reset</button>
-  </div>
+            for (let i = 0; i < urls.length; i++) {
+                let num = parseInt(urls[i].substring(urls[i].lastIndexOf('/') + 1));
+                let newNum = num + 999;
+                urls[i] = `https://researchrepository.wvu.edu/cgi/viewcontent.cgi?article=${newNum}&context=wvu_syllabi`;
+            }
+
+            let tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            for (let i = 0; i < urls.length; i++) {
+                let row = tableBody.insertRow();
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                cell1.innerHTML = `<a href="#" onclick="openURL(${i})">${names[i]}</a>`;
+                cell2.innerHTML = '';
+            }
+
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function openURL(index) {
+            if (currentPopup) {
+                currentPopup.close();
+            }
+
+            currentPopup = window.open(urls[index] + '#page=2', '_blank', 'width=600,height=600');
+            currentIndex = index;
+            document.getElementById('openedURLName').innerText = names[index];
+        }
+
+        function closePopup(action) {
+            if (currentPopup) {
+                currentPopup.close();
+                currentPopup = null;
+                let tableBody = document.getElementById('tableBody');
+                tableBody.rows[currentIndex].style.backgroundColor = action === 'yes' ? 'green' : 'red';
+                tableBody.rows[currentIndex].cells[1].innerHTML = action === 'yes' ? '&#x2713;' : '&#x2717;';
+                responses[currentIndex] = action === 'yes' ? 'Yes' : 'No';
+                openURL(currentIndex + 1);
+            }
+        }
+
+        function reset() {
+            if (currentPopup) {
+                currentPopup.close();
+                currentPopup = null;
+                let tableBody = document.getElementById('tableBody');
+                tableBody.rows[currentIndex].style.backgroundColor = '#777777';
+                tableBody.rows[currentIndex].cells[1].innerHTML = '';
+                responses[currentIndex] = '';
+            }
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Name,Yes/No\n";
+
+            for (let i = 0; i < names.length; i++) {
+                let row = `${names[i]},${responses[i]}\n`;
+                csvContent += row;
+            }
+
+            let encodedURI = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedURI);
+            link.setAttribute("download", "survey_responses.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>
 </body>
 </html>
